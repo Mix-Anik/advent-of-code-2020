@@ -212,6 +212,8 @@ _pkginfo.txt
 !?*.[Cc]ache/
 
 # Others
+**/[Rr]elease/*.dll
+**/[Rr]elease/*.xml
 ClientBin/
 ~$*
 *~

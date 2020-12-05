@@ -9,20 +9,23 @@ namespace AdventOfCode2020
     {
         static void Main(string[] args)
         {
-            Puzzle1a(); // passed
-            Puzzle1b(); // passed
-            Puzzle2a(); // passed
-            Puzzle2b(); // passed
-            Console.WriteLine("Trees(1): " + Puzzle3a(3, 1)); // passed
-            Puzzle3b(); // passed
-
+            Puzzle1a();
+            Puzzle1b();
+            Puzzle2a();
+            Puzzle2b();
+            Console.WriteLine("Trees(1): " + Puzzle3a(3, 1));
+            Puzzle3b();
+            Puzzle4a();
+            Puzzle4b();
+            Console.WriteLine("Boardpasses(1): " + Puzzle5a().Max());
+            Puzzle5b();
 
             Console.ReadKey();
         }
 
         public static void Puzzle1a()
         {
-            List<int> nums = File.ReadAllLines("./puzzleData1/numbers.txt").ToList().Select(int.Parse).ToList();
+            List<int> nums = File.ReadAllLines("./puzzleData/numbers.txt").ToList().Select(int.Parse).ToList();
 
             foreach(int num in nums)
             {
@@ -37,7 +40,7 @@ namespace AdventOfCode2020
 
         public static void Puzzle1b()
         {
-            List<int> nums = File.ReadAllLines("./puzzleData1/numbers.txt").ToList().Select(int.Parse).ToList();
+            List<int> nums = File.ReadAllLines("./puzzleData/numbers.txt").ToList().Select(int.Parse).ToList();
 
             int tempNum;
             for (int i = 0; i < nums.Count; i++)
@@ -57,7 +60,7 @@ namespace AdventOfCode2020
 
         public static void Puzzle2a()
         {
-            List<String> passwordPolicies = File.ReadAllLines("./puzzleData2/passwords.txt").ToList();
+            List<String> passwordPolicies = File.ReadAllLines("./puzzleData/passwords.txt").ToList();
             int valid = 0;
 
             foreach (string passwordPolicy in passwordPolicies)
@@ -75,7 +78,7 @@ namespace AdventOfCode2020
 
         public static void Puzzle2b()
         {
-            List<String> passwordPolicies = File.ReadAllLines("./puzzleData2/passwords.txt").ToList();
+            List<String> passwordPolicies = File.ReadAllLines("./puzzleData/passwords.txt").ToList();
             int valid = 0;
 
             foreach (string passwordPolicy in passwordPolicies)
@@ -93,7 +96,7 @@ namespace AdventOfCode2020
 
         public static int Puzzle3a(int stepX, int stepY)
         {
-            List<String> treePatterns = File.ReadAllLines("./puzzleData3/trees.txt").ToList();
+            List<String> treePatterns = File.ReadAllLines("./puzzleData/trees.txt").ToList();
             int trees = 0;
 
             for (int y = 0, x = 0; y < treePatterns.Count; y += stepY, x += stepX)
@@ -116,6 +119,108 @@ namespace AdventOfCode2020
             List<int> treeResults = slopes.Select(slope => Puzzle3a(slope[0], slope[1])).ToList();
             int result = treeResults.Aggregate((total, el) => total * el);
             Console.WriteLine("Trees(2): " + result);
+        }
+
+        public static void Puzzle4a()
+        {
+            string inputFile = File.ReadAllText("./puzzleData/passports.txt");
+            List<String> requiredFields = new List<string> { "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" };
+            int valid = 0;
+            List<String> passports = inputFile.Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<String[]> passportFieldsData = passports.Select(p => {
+                string[] kvString = p.Replace('\n', ' ').Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                return kvString.Select(field => field.Split(':')[0]).ToArray();
+            }).ToList();
+
+            foreach (string[] passport in passportFieldsData)
+            {
+                if (requiredFields.Intersect(passport).Count() == requiredFields.Count) valid++;
+            }
+            Console.WriteLine("Passports(1): " + valid);
+        }
+
+        public static void Puzzle4b()
+        {
+            string inputFile = File.ReadAllText("./puzzleData/passports.txt");
+            List<String> requiredFields = new List<string> { "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" };
+            int valid = 0;
+            List<String> passports = inputFile.Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<Dictionary<string, string>> passportDataSets = passports.Select(p => {
+                Dictionary<string, string> passportKeyValues = new Dictionary<string, string>();
+                List<String> kvString = p.Replace('\n', ' ').Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                kvString.ForEach(field => passportKeyValues[field.Split(':')[0]] = field.Split(':')[1]);
+                return passportKeyValues;
+            }).ToList();
+
+            foreach (Dictionary<string, string> passport in passportDataSets)
+            {
+                if (requiredFields.Intersect(passport.Keys).Count() != requiredFields.Count) continue;
+                if (passport["byr"].Length != 4 || passport["iyr"].Length != 4 || passport["eyr"].Length != 4 ||
+                    passport["pid"].Length != 9 || passport["hcl"].Length != 7 || passport["hgt"].Length < 4) continue;
+
+                string[] eyeColors = new string[] { "amb", "blu", "brn", "gry", "grn", "hzl", "oth" };
+                string hclCode = passport["hcl"].Substring(1, passport["hcl"].Length-1);
+                string hgtUnit = passport["hgt"].Substring(passport["hgt"].Length-2, 2);
+                int hgtValue = int.Parse(passport["hgt"].Substring(0, passport["hgt"].Length-2));
+                
+                if (int.Parse(passport["byr"]) < 1920 || int.Parse(passport["byr"]) > 2002) continue;
+                if (int.Parse(passport["iyr"]) < 2010 || int.Parse(passport["iyr"]) > 2020) continue;
+                if (int.Parse(passport["eyr"]) < 2020 || int.Parse(passport["eyr"]) > 2030) continue;
+                if (!eyeColors.Contains(passport["ecl"])) continue;
+                if (passport["hcl"][0] != '#' || !hclCode.All(c => "0123456789abcdef".Contains(c))) continue;
+                if (!(hgtUnit == "in" && hgtValue >= 59 && hgtValue <= 76) && !(hgtUnit == "cm" && hgtValue >= 150 && hgtValue <= 193)) continue;
+
+                valid++;
+            }
+            Console.WriteLine("Passports(2): " + valid);
+        }
+
+        public static List<int> Puzzle5a()
+        {
+            List<String> boardpasses = File.ReadAllLines("./puzzleData/boardpasses.txt").ToList();
+            List<int> seatIds = new List<int>();
+
+            foreach (string bp in boardpasses)
+            {
+                int[] row = new int[] { 0, 128 };
+                int[] col = new int[] { 0, 8 };
+
+                bp.ToList().ForEach(c => {
+                    int rowHalf = (row[1] - row[0]) / 2;
+                    int colHalf = (col[1] - col[0]) / 2;
+                    
+                    switch (c)
+                    {
+                        case 'B':
+                            row[0] += rowHalf;
+                            break;
+                        case 'F':
+                            row[1] -= rowHalf;
+                            break;
+                        case 'R':
+                            col[0] += colHalf;
+                            break;
+                        case 'L':
+                            col[1] -= colHalf;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                seatIds.Add(col[0] + row[0] * 8);
+            }
+            return seatIds;
+        }
+
+        public static void Puzzle5b()
+        {
+            List<int> seatIds = Puzzle5a();
+
+            seatIds.Sort();
+            seatIds.Aggregate((prev, cur) => {
+                if (cur - prev > 1) Console.WriteLine("Boardpasses(2): " + (prev+1));
+                return cur;
+            });
         }
     }
 }
