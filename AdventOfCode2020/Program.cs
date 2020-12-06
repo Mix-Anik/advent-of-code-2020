@@ -19,6 +19,8 @@ namespace AdventOfCode2020
             Puzzle4b();
             Console.WriteLine("Boardpasses(1): " + Puzzle5a().Max());
             Puzzle5b();
+            Puzzle6a();
+            Puzzle6b();
 
             Console.ReadKey();
         }
@@ -221,6 +223,27 @@ namespace AdventOfCode2020
                 if (cur - prev > 1) Console.WriteLine("Boardpasses(2): " + (prev+1));
                 return cur;
             });
+        }
+
+        public static void Puzzle6a()
+        {
+            string formsData = File.ReadAllText("./puzzleData/forms.txt");
+            List<String> formGroups = formsData.Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<int> formGroupAnswers = formGroups.Select(fg => fg.Replace("\n", string.Empty).Distinct().Count()).ToList();
+
+            Console.WriteLine("Forms(1): " + formGroupAnswers.Sum());
+        }
+
+        public static void Puzzle6b()
+        {
+            string formsData = File.ReadAllText("./puzzleData/forms.txt");
+            List<String> formGroups = formsData.Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<int> uniqueGroupAnswers = formGroups.Select(fg => {
+                List<String> groupAnswers = fg.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                return groupAnswers.Aggregate((a, b) => new string(a.Intersect(b).ToArray())).Count();
+            }).ToList();
+
+            Console.WriteLine("Forms(2): " + uniqueGroupAnswers.Sum());
         }
     }
 }
